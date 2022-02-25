@@ -59,9 +59,10 @@ function AdbPair(device: MdnsDeviceData, password: String): boolean {
     );
     console.log("Output was:\n", commandOutput);
     if (commandOutput[0] == 0) {
+      showNotification("ADB-QR: "+commandOutput[1]);
       return true;
     } else {
-      showError("ADB Qr: " + commandOutput[2]);
+      showError("ADB-QR: " + commandOutput[2]);
       return false;
     }
   } catch (e) {
@@ -74,12 +75,7 @@ function AdbPair(device: MdnsDeviceData, password: String): boolean {
 function AdbConnect(panel?: any) {
   var timer: NodeJS.Timeout;
 
-  timer = setTimeout(() => { 
-    scanner.stop();
-    panel?.dispose();
-    showError("ADB QR: TimeOut: Unable to connect with device");
-  }, 30000);
-
+  console.log("Started Scanning...")
   var scanner = bonjour().find(
     { type: "adb-tls-connect" },
     function (service: any) {
@@ -91,10 +87,9 @@ function AdbConnect(panel?: any) {
         );
 
         console.log("Output was:\n", commandOutput);
-
         if (commandOutput[0] == 0) {
+          showNotification("ADB-QR: "+commandOutput[1]);
           var deviceName = getDeviceName(service.addresses[0], service.port);
-
           showNotification("ADB QR:Connected To " + deviceName);
         } else {
           showError("ADB Qr " + commandOutput[2]);
@@ -108,6 +103,13 @@ function AdbConnect(panel?: any) {
       }
     }
   );
+  
+  timer = setTimeout(() => { 
+    scanner.stop();
+    panel?.dispose();
+    showError("ADB QR: TimeOut: Unable to connect with device");
+    console.log("ADB QR: TimeOut: Unable to connect with device")
+  }, 30000);
 }
 
 function getDeviceName(address: string, port: number): string {
@@ -132,13 +134,22 @@ function getDeviceName(address: string, port: number): string {
 }
 
 function executeCommand(command: string) {
-  const child = spawnSync(command, {
+  
+  var child;
+  try{
+   child = spawnSync(command, {
     encoding: "utf-8",
     timeout: 30000,
     shell: true,
   });
+}
+catch(e){
+  console.log(e);
+  showError("ADB-QR: Timeout in executing ADB command Try restarting ADB..")
+}
 
-  return [child.status, child.stdout, child.stderr];
+return [child?.status??1, child?.stdout??"", child?.stderr??""];
+  
 }
 
 export { isAdbVersionSupported, isAdbInstalled, AdbConnect, AdbPair };

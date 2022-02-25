@@ -33,7 +33,9 @@ async function connectWithPairingCode() {
           .showInputBox({ title: "Enter pairing code", placeHolder: "123456" })
           .then((input) => {
             code = input ?? "0";
+            showNotification("ADB-QR:Pairing...")
             if (AdbPair(selection[0].device, code)) {
+            showNotification("ADB-QR:Connecting...")
               AdbConnect();
             } else {
               showError("ADB QR: Unable to pair Device");

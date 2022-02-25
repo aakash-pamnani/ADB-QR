@@ -28,15 +28,16 @@ async function connectWithQr() {
 }
 
 async function showQrCodePage() {
-  var code = "";
+
+  try{
+  var code:String = "";
 
   password = Math.floor(Math.random() * 1000000 + 1).toString();
   var text = "WIFI:T:ADB;S:ADBQR-connectPhoneOverWifi;P:" + password + ";;";
 
-  await qrCode
+  code = await qrCode
     .toDataURL(text,{type:"image/webp",rendererOpts:{quality:1}})
-    .then((url: any) => {
-      code = url;
+    
 
       panel = vscode.window.createWebviewPanel(
         "ADB QR",
@@ -48,13 +49,16 @@ async function showQrCodePage() {
       panel.webview.html =
         '<html><body><div style="background-color:black; text-align:center; padding: 5px; height:100vh; width:100vw;">' +
         '<img margin="auto" height="auto" width="30%" min-width="300px" src=' + code + ">" +"<br>"+
-        "Scan QrCode From Android Device in <br> Settings>Developer Options>Wireless Debugging>Connect With QRCode"
+        "Scan QrCode From Android Device in <br> Settings>Developer Options>Wireless Debugging>Connect With QRCode <br> Turn Off MobileData if enabled"
         "</div></body></html>";
       return panel;
-    })
-    .catch((err: any) => {
-      console.error(err);
-    });
+
+  }
+  catch(e){
+    console.log(e);
+  }
+    
+    
 }
 
 export { connectWithQr, showQrCodePage };

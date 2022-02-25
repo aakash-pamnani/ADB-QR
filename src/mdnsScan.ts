@@ -3,10 +3,11 @@ import { ReadStream, WriteStream } from "fs";
 import { Readable, Stream } from "stream";
 import { AdbConnect, AdbPair } from "./adbService";
 import { MdnsDeviceData } from "./mdnsDeviceData";
-import { showError, showProgress } from "./utils";
+import { showError, showNotification, showProgress } from "./utils";
 
 function startMdnsScanQr(password: String, panel: any) {
   var timer: NodeJS.Timeout;
+
   var scanner = bonjour().find(
     { type: "adb-tls-pairing" },
     function (service: any) {
@@ -19,9 +20,10 @@ function startMdnsScanQr(password: String, panel: any) {
         );
         scanner.stop();
         if (AdbPair(device, password)) {
-          clearTimeout(timer);
-          panel.dispose();
-          AdbConnect(panel);
+          showProgress("Waiting to Connect...",()=>{panel.dispose();
+            AdbConnect(panel);
+            clearTimeout(timer);});
+          
         }
       }
     }
@@ -34,7 +36,7 @@ function startMdnsScanQr(password: String, panel: any) {
   }, 30000);
 }
 
-function startMdnsScanPairingCode(): {stream:Readable,dispose:Function} {
+function startMdnsScanPairingCode(): { stream: Readable; dispose: Function } {
   var timer: NodeJS.Timeout;
 
   var stream = new Readable();
@@ -60,12 +62,12 @@ function startMdnsScanPairingCode(): {stream:Readable,dispose:Function} {
     showError("ADB QR: TimeOut: Scanning Stopped");
   }, 30000);
 
-  var dispose:Function = ()=>{
+  var dispose: Function = () => {
     scanner.stop();
     stream.destroy();
     clearTimeout(timer);
-  }
-  return {stream,dispose};
+  };
+  return { stream, dispose };
 }
 
 export { startMdnsScanQr, startMdnsScanPairingCode };

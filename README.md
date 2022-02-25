@@ -7,6 +7,7 @@ Connect Your Android device with your PC wirelessly for debugging with the help 
 - Android Version : 11+.
 - Adb Should be installed and ENV Path should be set.
 - Phone and Pc Should be on same wifi network.
+- TurnOff Mobile Data if enabled.
 
 ## Features
 
@@ -43,14 +44,14 @@ Connect Your android phone by directly scanning QR Code.
 ## Known Issues
 
 No known isssues until now.<br>
-If you find any issues report here :
+If you find any issues report [here](https://github.com/aakashpsindhi/ADB-QR/issues)
 
 ## Release Notes
+### 0.0.1
 
+Initial release of ADB-QR
 
+### 0.0.2
 
-### 1.0.0
+Bug Fixes
 
-Initial release of ...
-
-- [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
