@@ -7,3 +7,5 @@ node_modules
 .yarnrc
 vsc-extension-quickstart.md
 **/*.map
+package-lock.json
+

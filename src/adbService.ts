@@ -1,7 +1,6 @@
 import bonjour = require("bonjour");
-import { exec, execSync, spawnSync } from "child_process";
-import { OutgoingMessage } from "http";
-import { resolve } from "path";
+import {spawnSync } from "child_process";
+
 
 import { MdnsDeviceData } from "./mdnsDeviceData";
 import { showError, showNotification, showProgress } from "./utils";
