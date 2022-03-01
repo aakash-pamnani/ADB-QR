@@ -31,12 +31,16 @@ async function connectWithPairingCode() {
         var code: string;
         vscode.window
           .showInputBox({ title: "Enter pairing code", placeHolder: "123456" })
-          .then((input) => {
+          .then(async (input) => {
             code = input ?? "0";
-            showNotification("ADB-QR:Pairing...")
-            if (AdbPair(selection[0].device, code)) {
-            showNotification("ADB-QR:Connecting...")
-              AdbConnect();
+            var isPaired;
+            await showProgress("ADB-QR:Pairing...", () => {
+              isPaired = AdbPair(selection[0].device, code);
+            });
+            if (isPaired) {
+              showProgress("ADB-QR:Connecting...", async () => {
+                await AdbConnect();
+              });
             } else {
               showError("ADB QR: Unable to pair Device");
             }
@@ -52,20 +56,22 @@ async function connectWithPairingCode() {
     quickPick.busy = true;
     quickPick.show();
 
-    showProgress("ADB QR: Starting...", () => {
-      scanData = startMdnsScanPairingCode();
+    showProgress("ADB QR: Scanning...", async () => {
+      await new Promise<void>(async (resolve) => {
+        scanData = await startMdnsScanPairingCode(resolve);
 
-      scanData["stream"]
-        .addListener("data", (data: MdnsDeviceData) => {
-          deviceList.push(new QuickPickTile(data));
-          quickPick.items = deviceList;
-        })
-        .addListener("close", () => {
-          quickPick.busy = false;
-          if (deviceList.length == 0) {
-            quickPick.dispose();
-          }
-        });
+        scanData["stream"]
+          .addListener("data", (data: MdnsDeviceData) => {
+            deviceList.push(new QuickPickTile(data));
+            quickPick.items = deviceList;
+          })
+          .addListener("close", () => {
+            quickPick.busy = false;
+            if (deviceList.length == 0) {
+              quickPick.dispose();
+            }
+          });
+      });
     });
   }
 }

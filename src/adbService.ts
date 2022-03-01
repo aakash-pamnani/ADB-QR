@@ -1,9 +1,10 @@
 import bonjour = require("bonjour");
 import { exec, execSync, spawnSync } from "child_process";
 import { OutgoingMessage } from "http";
+import { resolve } from "path";
 
 import { MdnsDeviceData } from "./mdnsDeviceData";
-import { showError, showNotification } from "./utils";
+import { showError, showNotification, showProgress } from "./utils";
 
 function isAdbVersionSupported(): boolean {
   try {
@@ -59,7 +60,7 @@ function AdbPair(device: MdnsDeviceData, password: String): boolean {
     );
     console.log("Output was:\n", commandOutput);
     if (commandOutput[0] == 0) {
-      showNotification("ADB-QR: "+commandOutput[1]);
+      showNotification("ADB-QR: " + commandOutput[1]);
       return true;
     } else {
       showError("ADB-QR: " + commandOutput[2]);
@@ -72,10 +73,9 @@ function AdbPair(device: MdnsDeviceData, password: String): boolean {
   }
 }
 
-function AdbConnect(panel?: any) {
+async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
   var timer: NodeJS.Timeout;
-
-  console.log("Started Scanning...")
+  console.log("Started Scanning...");
   var scanner = bonjour().find(
     { type: "adb-tls-connect" },
     function (service: any) {
@@ -88,31 +88,39 @@ function AdbConnect(panel?: any) {
 
         console.log("Output was:\n", commandOutput);
         if (commandOutput[0] == 0) {
-          showNotification("ADB-QR: "+commandOutput[1]);
-          var deviceName = getDeviceName(service.addresses[0], service.port);
-          showNotification("ADB QR:Connected To " + deviceName);
+          showNotification("ADB-QR: " + commandOutput[1]);
+          showProgress("ADB QR: Getting Device Name", () => {
+            getDeviceName(service.addresses[0], service.port);
+          });
         } else {
-          showError("ADB Qr " + commandOutput[2]);
+          showError("ADB QR " + commandOutput[2]);
         }
-
         clearTimeout(timer);
+        if (resolve != null) {
+          resolve();
+        }
       } catch (e) {
         console.log("Unable to Connect With Device", e);
         showError("ADB QR: Unable to Connect With Device");
         clearTimeout(timer);
+        if (resolve != null) {
+          resolve();
+        }
       }
     }
   );
-  
-  timer = setTimeout(() => { 
+  timer = setTimeout(() => {
     scanner.stop();
     panel?.dispose();
     showError("ADB QR: TimeOut: Unable to connect with device");
-    console.log("ADB QR: TimeOut: Unable to connect with device")
+    console.log("ADB QR: TimeOut: Unable to connect with device");
+    if (resolve != null) {
+      resolve();
+    }
   }, 30000);
 }
 
-function getDeviceName(address: string, port: number): string {
+function getDeviceName(address: string, port: number) {
   try {
     var commandOutput = executeCommand(
       "adb -s " + address + ":" + port + " shell getprop ro.product.model"
@@ -121,35 +129,30 @@ function getDeviceName(address: string, port: number): string {
 
     if (commandOutput[0] == 0) {
       var output: string = commandOutput[1]?.toString() ?? "";
-      return output;
+      showNotification("ADB QR:Connected To " + output);
     } else {
       showError("ADB Qr " + commandOutput[2]);
-      return "Unable to get device name";
     }
   } catch (e) {
     console.log("Unable to get Device Name", e);
     showError("ADB QR: Something Went Wrong");
-    return "";
   }
 }
 
 function executeCommand(command: string) {
-  
   var child;
-  try{
-   child = spawnSync(command, {
-    encoding: "utf-8",
-    timeout: 30000,
-    shell: true,
-  });
-}
-catch(e){
-  console.log(e);
-  showError("ADB-QR: Timeout in executing ADB command Try restarting ADB..")
-}
+  try {
+    child = spawnSync(command, {
+      encoding: "utf-8",
+      timeout: 30000,
+      shell: true,
+    });
+  } catch (e) {
+    console.log(e);
+    showError("ADB-QR: Timeout in executing ADB command Try restarting ADB..");
+  }
 
-return [child?.status??1, child?.stdout??"", child?.stderr??""];
-  
+  return [child?.status ?? 1, child?.stdout ?? "", child?.stderr ?? ""];
 }
 
 export { isAdbVersionSupported, isAdbInstalled, AdbConnect, AdbPair };

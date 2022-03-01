@@ -4,9 +4,11 @@ import { connectWithPairingCode } from "./connectWithPairingCode";
 import { connectWithQr } from "./connectWithQr";
 
 export function activate(context: any) {
-  const readmePath = context.asAbsolutePath("README.md");
-  vscode.commands.executeCommand("markdown.showPreview", vscode.Uri.file(readmePath));
-
+  // const readmePath = context.asAbsolutePath("README.md");
+  // vscode.commands.executeCommand(
+  //   "markdown.showPreview",
+  //   vscode.Uri.file(readmePath)
+  // );
 
   //Command to connect with QR Code
   let connectWithQrDisposible = vscode.commands.registerCommand(

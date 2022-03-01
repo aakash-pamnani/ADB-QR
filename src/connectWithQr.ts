@@ -3,9 +3,7 @@ import { startMdnsScanQr } from "./mdnsScan";
 import { showError, showProgress } from "./utils";
 
 import * as vscode from "vscode";
-import * as qrCode from"qrcode";
-
-
+import * as qrCode from "qrcode";
 
 var panel: any;
 var password: String;
@@ -20,45 +18,46 @@ async function connectWithQr() {
     showProgress("ADB QR: Generating QR Code", async () => {
       await showQrCodePage();
     }).then(() => {
-      showProgress("ADB QR: Starting...", () => {
-        startMdnsScanQr(password, panel);
+      showProgress("ADB QR: Waiting for device to Pair...", async () => {
+        await new Promise<void>((resolve) => {
+          return startMdnsScanQr(password, panel, resolve);
+        });
       });
     });
   }
 }
 
 async function showQrCodePage() {
+  try {
+    var code: String = "";
 
-  try{
-  var code:String = "";
+    password = Math.floor(Math.random() * 1000000 + 1).toString();
+    var text = "WIFI:T:ADB;S:ADBQR-connectPhoneOverWifi;P:" + password + ";;";
 
-  password = Math.floor(Math.random() * 1000000 + 1).toString();
-  var text = "WIFI:T:ADB;S:ADBQR-connectPhoneOverWifi;P:" + password + ";;";
+    code = await qrCode.toDataURL(text, {
+      type: "image/webp",
+      rendererOpts: { quality: 1 },
+    });
 
-  code = await qrCode
-    .toDataURL(text,{type:"image/webp",rendererOpts:{quality:1}})
-    
+    panel = vscode.window.createWebviewPanel(
+      "ADB QR",
+      "ADB QR",
+      vscode.ViewColumn.One,
+      {}
+    );
 
-      panel = vscode.window.createWebviewPanel(
-        "ADB QR",
-        "ADB QR",
-        vscode.ViewColumn.One,
-        {}
-      );
-
-      panel.webview.html =
-        '<html><body><div style="background-color:black; text-align:center; padding: 5px; height:100vh; width:100vw;">' +
-        '<img margin="auto" height="auto" width="30%" min-width="300px" src=' + code + ">" +"<br>"+
-        "Scan QrCode From Android Device in <br> Settings>Developer Options>Wireless Debugging>Connect With QRCode <br> Turn Off MobileData if enabled"
-        "</div></body></html>";
-      return panel;
-
-  }
-  catch(e){
+    panel.webview.html =
+      '<html><body><div style="background-color:black; text-align:center; padding: 5px; height:100vh; width:100vw;">' +
+      '<img margin="auto" height="auto" width="30%" min-width="300px" src=' +
+      code +
+      ">" +
+      "<br>" +
+      "Scan QrCode From Android Device in <br> Settings>Developer Options>Wireless Debugging>Connect With QRCode <br> Turn Off MobileData if enabled";
+    ("</div></body></html>");
+    return panel;
+  } catch (e) {
     console.log(e);
   }
-    
-    
 }
 
 export { connectWithQr, showQrCodePage };

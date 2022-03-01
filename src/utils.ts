@@ -6,19 +6,13 @@ function showProgress(title: string, fun: Function): Thenable<any> {
       location: vscode.ProgressLocation.Notification,
       title: title,
     },
-     () => {
-      const p =  new Promise((resolve) => {
-        resolve(fun());
-      });
-
-      return p;
+    async () => {
+      await fun();
     }
   );
 }
-function showNotification(message: string){
+function showNotification(message: string) {
   var noti = vscode.window.showInformationMessage(message);
-
-  
 }
 
 function showError(message: string) {

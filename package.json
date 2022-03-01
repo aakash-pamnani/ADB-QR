@@ -1,62 +1,65 @@
 {
-	"name": "adb-qr",
-	"displayName": "ADB QR",
-	"description": "Connect your android device to your pc wirelessly on same network for debugging directly from vscode",
-	"version": "0.0.2",
-	"repository": "https://github.com/aakashpsindhi/ADB-QR.git",
-	"icon": "icon.jpg",
-	"publisher": "AakashP",
-	"engines": {
-		"vscode": "^1.64.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:adb-qr.connect with qr",
-		"onCommand:adb-qr.connect with pairing code",
-		"onCommand:adb-qr.connect with paired device"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "adb-qr.connect with qr",
-				"title": "ADB-QR:Connect With QR Code"
-			},
-			{
-				"command": "adb-qr.connect with pairing code",
-				"title": "ADB-QR:Connect With Pairing Code"
-			},
-			{
-				"command": "adb-qr.connect with paired device",
-				"title": "ADB-QR:Connect With Paired Device"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/bonjour": "^3.5.10",
-		"@types/glob": "^7.2.0",
-		"@types/mocha": "^9.0.0",
-		"@types/node": "14.x",
-		"@types/qrcode": "^1.4.2",
-		"@types/vscode": "^1.64.0",
-		"@vscode/test-electron": "^2.0.3",
-		"eslint": "^8.6.0",
-		"glob": "^7.2.0",
-		"mocha": "^9.1.3",
-		"typescript": "^4.5.4"
-	},
-	"dependencies": {
-		"bonjour": "^3.5.0",
-		"qrcode": "^1.5.0"
-	}
+  "name": "adb-qr",
+  "displayName": "ADB QR",
+  "description": "Connect your android device to your pc wirelessly on same network for debugging directly from vscode",
+  "version": "0.0.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aakashpsindhi/ADB-QR"
+  },
+  "icon": "icon.jpg",
+  "publisher": "AakashP",
+  "engines": {
+    "vscode": "^1.64.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:adb-qr.connect with qr",
+    "onCommand:adb-qr.connect with pairing code",
+    "onCommand:adb-qr.connect with paired device"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "adb-qr.connect with qr",
+        "title": "ADB-QR:Connect With QR Code"
+      },
+      {
+        "command": "adb-qr.connect with pairing code",
+        "title": "ADB-QR:Connect With Pairing Code"
+      },
+      {
+        "command": "adb-qr.connect with paired device",
+        "title": "ADB-QR:Connect With Paired Device"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/bonjour": "^3.5.10",
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "14.x",
+    "@types/qrcode": "^1.4.2",
+    "@types/vscode": "^1.64.0",
+    "@vscode/test-electron": "^2.0.3",
+    "eslint": "^8.6.0",
+    "glob": "^7.2.0",
+    "mocha": "^9.1.3",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "bonjour": "^3.5.0",
+    "qrcode": "^1.5.0"
+  }
 }
