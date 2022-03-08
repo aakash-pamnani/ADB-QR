@@ -3,7 +3,6 @@ import {
   isAdbInstalled,
   isAdbVersionSupported,
 } from "./adbService";
-import { MdnsDeviceData } from "./mdnsDeviceData";
 import { showError, showNotification, showProgress } from "./utils";
 
 function connectWithPairedDevice() {

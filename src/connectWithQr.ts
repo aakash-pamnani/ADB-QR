@@ -5,7 +5,7 @@ import { showError, showProgress } from "./utils";
 import * as vscode from "vscode";
 import * as qrCode from "qrcode";
 
-var panel: any;
+var panel: vscode.WebviewPanel;
 var password: String;
 
 async function connectWithQr() {

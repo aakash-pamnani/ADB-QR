@@ -1,19 +1,28 @@
 import bonjour = require("bonjour");
-import { ReadStream, WriteStream } from "fs";
-import { resolve } from "path";
 import { Readable, Stream } from "stream";
 import { AdbConnect, AdbPair } from "./adbService";
 import { MdnsDeviceData } from "./mdnsDeviceData";
-import { showError, showNotification, showProgress } from "./utils";
+import { showError, showProgress } from "./utils";
+import * as vscode from 'vscode'
 
+// Mdns Scanning for QR code connection pairing.
 async function startMdnsScanQr(
   password: String,
-  panel: any,
+  panel: vscode.WebviewPanel,
   resolve?: Function
 ): Promise<void> {
+  //Timer variable to dispose everything if no device connect within 30 sec.
   var timer: NodeJS.Timeout;
 
-  var scanner = bonjour().find(
+  // Event if panel is closed by user.
+  panel?.onDidDispose((e)=>{
+    resolve!();
+    scanner.stop();
+    bonjour().destroy();
+    clearTimeout(timer);
+  })
+
+  var scanner: bonjour.Browser = bonjour().find(
     { type: "adb-tls-pairing" },
     async function (service: any) {
       console.log(service);
@@ -37,6 +46,7 @@ async function startMdnsScanQr(
               await AdbConnect(panel, resolve);
               clearTimeout(timer);
               scanner.stop();
+              bonjour().destroy();
             });
           });
         }
@@ -48,8 +58,17 @@ async function startMdnsScanQr(
     }
   );
 
+  scanner.addListener('up',()=>{
+    console.log("QR Scanning Stopped...");
+  })
+
+  scanner.on('up',()=>{
+    console.log("up");
+  })
+
   timer = setTimeout(() => {
     scanner.stop();
+    bonjour().destroy();
     panel.dispose();
     showError("ADB QR: TimeOut: No Device Found");
     resolve!();
@@ -80,6 +99,7 @@ async function startMdnsScanPairingCode(
 
   timer = setTimeout(() => {
     scanner.stop();
+    bonjour().destroy();
     stream.destroy();
     showError("ADB QR: TimeOut: Scanning Stopped");
     resolve!();
@@ -87,6 +107,7 @@ async function startMdnsScanPairingCode(
 
   var dispose: Function = () => {
     scanner.stop();
+    bonjour().destroy();
     stream.destroy();
     clearTimeout(timer);
     resolve!();

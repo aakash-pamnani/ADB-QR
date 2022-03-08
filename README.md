@@ -15,7 +15,7 @@ Connect Your Android device with your PC wirelessly for debugging with the help 
 
 Connect Your android phone by directly scanning QR Code.
 
-    - Go to Settings>Developer Options>Wireless Debugging>Connect With Qr Qode.
+    - Go to Settings>Developer Options>Wireless Debugging>Connect With Qr Code.
     - In vscode press ctrl+shift+p and run ADB Qr: Connect With Qr
     - Scan the qr code with phone and done.
     - Enjoy debugging wirelessly.
@@ -24,7 +24,7 @@ Connect Your android phone by directly scanning QR Code.
 
 Connect Your android phone by entering pairing Code.
 
-    - Go to Settings>Developer Options>Wireless Debugging>Connect With Pairing Qode.
+    - Go to Settings>Developer Options>Wireless Debugging>Connect With Pairing Code.
     - In vscode press ctrl+shift+p and run ADB Qr: Connect With Pairing Code
     - Wait for device Scanning.
     - Select your device from the list.
@@ -34,7 +34,7 @@ Connect Your android phone by entering pairing Code.
 
 ### 3. Connect With already paired devices.
 
-Connect Your android phone by directly scanning QR Code.
+Connect Your android phone With already paired PC.
 
     - Go to Settings>Developer Options>Wireless Debugging.
     - In vscode press ctrl+shift+p and run ADB Qr: Connect With Paired Devices.
@@ -55,3 +55,14 @@ Initial release of ADB-QR
 
 Bug Fixes
 
+## 0.0.3
+
+Minor Changes
+
+## 0.1.0
+
+Added Progress Indicator in place of static notifications
+
+## 0.1.1
+
+Fixed connect with paired device running in background

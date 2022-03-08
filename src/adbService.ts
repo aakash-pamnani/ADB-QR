@@ -12,8 +12,6 @@ function isAdbVersionSupported(): boolean {
     const output = commandOutput[1]?.toString();
     const exitCode = commandOutput[0];
 
-    console.log("output is " + output);
-
     if (exitCode == 0) {
       var versionIndex = output!.lastIndexOf("Version");
       var currentFullVersion = output!.substring(versionIndex + 8);
@@ -78,6 +76,8 @@ async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
   var scanner = bonjour().find(
     { type: "adb-tls-connect" },
     function (service: any) {
+      scanner.stop();
+      bonjour().destroy();
       console.log(service);
 
       try {

@@ -26,6 +26,7 @@ export function activate(context: any) {
     }
   );
 
+  //Command to connect Paired Devices
   let connectWithpairedDeviceDisposible = vscode.commands.registerCommand(
     "adb-qr.connect with paired device",
     function () {

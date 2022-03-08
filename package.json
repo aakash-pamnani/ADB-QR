@@ -2,13 +2,13 @@
   "name": "adb-qr",
   "displayName": "ADB QR",
   "description": "Connect your android device to your pc wirelessly on same network for debugging directly from vscode",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/aakashpsindhi/ADB-QR"
   },
   "icon": "icon.jpg",
-  "publisher": "AakashP",
+  "publisher": "Aakash",
   "engines": {
     "vscode": "^1.64.0"
   },
