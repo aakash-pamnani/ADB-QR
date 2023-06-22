@@ -2,6 +2,7 @@ on:
   push:
     branches:
       master
+      github-actions-configurations
 
 name: Deploy Extension
 jobs:
