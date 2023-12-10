@@ -30,12 +30,15 @@ async function connectWithPairingCode() {
       if (selection[0]) {
         var code: string;
         vscode.window
-          .showInputBox({ title: "Enter pairing code", placeHolder: "123456" })
-          .then(async (input) => {
-            if(input==null){
+          .showInputBox({
+            title: "Enter pairing code",
+            placeHolder: "123456",
+          })
+          .then(async (input: string | undefined) => {
+            if (input == null) {
               return;
             }
-            scanData["dispose"]()
+            scanData["dispose"]();
             code = input;
             var isPaired;
             await showProgress("ADB-QR:Pairing...", () => {

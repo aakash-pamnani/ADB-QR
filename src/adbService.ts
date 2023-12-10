@@ -1,9 +1,10 @@
 import bonjour = require("bonjour");
-import {spawnSync } from "child_process";
-
+import {  spawn, spawnSync } from "child_process";
 
 import { MdnsDeviceData } from "./mdnsDeviceData";
 import { showError, showNotification, showProgress } from "./utils";
+
+let devicePath: string = "/data/local/tmp/.studio/";
 
 function isAdbVersionSupported(): boolean {
   try {
@@ -138,6 +139,78 @@ function getDeviceName(address: string, port: number) {
   }
 }
 
+function copyFileToAndroid(path: string): boolean {
+  try {
+    var commandOutput = executeCommand('adb push "' + path + '" ' + devicePath);
+    console.log("Output was:\n", commandOutput);
+
+    if (commandOutput[0] == 0) {
+      var output: string = commandOutput[1]?.toString() ?? "";
+      return true;
+    } else {
+      showError("ADB Qr " + commandOutput[2]);
+      return false;
+    }
+  } catch (e) {
+    console.log("Unable to transfer jar file", e);
+    showError("ADB QR: Something Went Wrong");
+    return false;
+  }
+}
+
+function addReversePortForward(): boolean {
+  try {
+    var commandOutput = executeCommand(
+      "adb reverse localabstract:screen-sharing-agent tcp:1234"
+    );
+    console.log("Output was:\n", commandOutput);
+
+    if (commandOutput[0] == 0) {
+      var output: string = commandOutput[1]?.toString() ?? "";
+      return true;
+    } else {
+      showError("ADB Qr " + commandOutput[2]);
+      return false;
+    }
+  } catch (e) {
+    console.log("Unable to reverse port", e);
+    showError("ADB QR: Something Went Wrong");
+    return false;
+  }
+}
+
+async function startScreenSharingJarMainClass(): Promise<boolean> {
+  try {
+    var commandOutput = await executeCommandAsync(
+      "adb shell CLASSPATH=/data/local/tmp/.studio/screen-sharing-agent.jar app_process /data/local/tmp/.studio com.android.tools.screensharing.Main"
+    );
+    console.log("Output was:\n", commandOutput);
+    // var terminal = vscode.window.createTerminal({
+    //   name: `Ext Terminal +}`,
+    //   hideFromUser: false,
+    // } as any);
+
+    // terminal.sendText(
+    //   "adb shell CLASSPATH=/data/local/tmp/.studio/screen-sharing-agent.jar app_process /data/local/tmp/.studio com.android.tools.screensharing.Main"
+    // );
+
+    // console.log(terminal.exitStatus);
+    // console.log(terminal.state);
+
+    // if (commandOutput[0] == 0) {
+    //   var output: string = commandOutput[1]?.toString() ?? "";
+    return true;
+    // } else {
+    // showError("ADB Qr " + commandOutput[2]);
+    // return false;
+    // }
+  } catch (e) {
+    console.log("Unable to reverse port", e);
+    showError("ADB QR: Something Went Wrong");
+    return false;
+  }
+}
+
 function executeCommand(command: string) {
   var child;
   try {
@@ -154,4 +227,32 @@ function executeCommand(command: string) {
   return [child?.status ?? 1, child?.stdout ?? "", child?.stderr ?? ""];
 }
 
-export { isAdbVersionSupported, isAdbInstalled, AdbConnect, AdbPair };
+function executeCommandAsync2(command: string) {
+  // return new Promise((resolve, reject) => {
+  var data = spawnSync(command);
+}
+
+async function executeCommandAsync(command: string) {
+  var child;
+  try {
+    child = await spawn(command, {
+      timeout: 3000000,
+      shell: true,
+    });
+  } catch (e) {
+    console.log(e);
+    showError("ADB-QR: Timeout in executing ADB command Try restarting ADB..");
+  }
+
+  return [child ?? 1, child ?? "", child ?? ""];
+}
+
+export {
+  isAdbVersionSupported,
+  isAdbInstalled,
+  AdbConnect,
+  AdbPair,
+  copyFileToAndroid,
+  addReversePortForward,
+  startScreenSharingJarMainClass,
+};

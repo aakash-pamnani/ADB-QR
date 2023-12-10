@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta default-src * 'unsafe-inline' 'unsafe-eval'; script-src *
+    'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src *
+    data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline'; />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cat Coding</title>
+  </head>
+  <body>
+    <button id="3" onclick="onClick(this.id)">Volume Down</button>
+    <button id="2" onclick="onClick(this.id)">Volume UP</button>
+    <button id="4" onclick="onClick(this.id)">Power</button>
+    <button id="1" onclick="onClick(this.id)">Back</button>
+    <button id="5" onclick="onClick(this.id)">Home</button>
+    <button id="6" onclick="onClick(this.id)">Overview</button>
+
+    <script>
+      const vscode = acquireVsCodeApi();
+      function onClick(id) {
+        // vscode.postMessage({
+        //   command: id,
+        //   text: id,
+        // });
+        console.log(id);
+        fetch("http://localhost:8081/stream/press-button?buttonCode=" + id);
+      }
+    </script>
+    <video
+      id="main-video"
+      autoplay
+      controls
+      height="2246px"
+      width="1080px"
+    ></video>
+
+    <h1 id="lines-of-code-counter">0</h1>
+    <div id="id-test"></div>
+
+    <script>
+      var p = new Player({});
+
+      var canvas = p.canvas; // the canvas - put it where you want it
+      var div = document.getElementById("id-test");
+      div.appendChild(canvas);
+
+      // p.decode(<h264 data>);
+      var mediaSource = new MediaSource();
+      var video = document.getElementById("main-video");
+      // video.src = URL.createObjectURL(mediaSource);
+      var sourceBuffer = [];
+
+      console.log(MediaSource.isTypeSupported("video/mp4"));
+      console.log(MediaSource.isTypeSupported("video/ogg"));
+      console.log(MediaSource.isTypeSupported("video/webm"));
+      var videoElement = document.createElement("video");
+      console.log(
+        videoElement.canPlayType('video/mp4; codecs="avc1.42001E, mp4a.40.2"')
+      );
+      console.log(videoElement.canPlayType('video/webm; codecs="vp8, vorbis"'));
+      console.log(
+        videoElement.canPlayType('video/ogg; codecs="theora, vorbis"')
+      );
+
+      var mimeCodec = "video/webm; codecs='vp8, vorbis'";
+      mediaSource.addEventListener("sourceopen", function () {
+        sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+        video.play();
+      });
+      const counter = document.getElementById("lines-of-code-counter");
+      const data = document.getElementById("data");
+
+      let count = 0;
+      let fileReader = new FileReader();
+
+      fileReader.onloadend = function () {
+        let arrayBuffer = fileReader.result;
+      };
+      // Handle the message inside the webview
+      window.addEventListener("message", (event) => {
+        const message = event.data; // The JSON data our extension sent
+        // console.log(message);
+        // console.log(sourceBuffer);
+        switch (message.command) {
+          case "frame":
+            p.decode(message.data.data);
+            data.textContent = message.data.data.toString("base64");
+            // sourceBuffer.appendChild(message.data.data);
+            sourceBuffer = message.data.data;
+
+            break;
+        }
+      });
+    </script>
+  </body>
+</html>

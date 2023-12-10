@@ -48,7 +48,7 @@ async function showQrCodePage() {
 
     panel.webview.html =
       '<html><body><div style="background-color:black; text-align:center; padding: 5px; height:100vh; width:100vw;">' +
-      '<img margin="auto" height="auto" width="30%" min-width="300px" src=' +
+      '<img margin="auto" width="20%" min-width="300px" src=' +
       code +
       ">" +
       "<br>" +
