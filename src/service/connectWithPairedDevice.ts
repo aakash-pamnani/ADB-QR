@@ -3,7 +3,7 @@ import {
   isAdbInstalled,
   isAdbVersionSupported,
 } from "./adbService";
-import { showError, showNotification, showProgress } from "./utils";
+import { showError, showProgress } from "../utils";
 
 function connectWithPairedDevice() {
   if (!isAdbInstalled()) {

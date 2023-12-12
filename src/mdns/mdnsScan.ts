@@ -1,9 +1,9 @@
-import bonjour = require("bonjour");
+import Bonjour, { Service } from "bonjour-service";
 import { Readable, Stream } from "stream";
-import { AdbConnect, AdbPair } from "./adbService";
+import { AdbConnect, AdbPair } from "../service/adbService";
 import { MdnsDeviceData } from "./mdnsDeviceData";
-import { showError, showProgress } from "./utils";
-import * as vscode from 'vscode'
+import { showError, showProgress } from "../utils";
+import * as vscode from "vscode";
 
 // Mdns Scanning for QR code connection pairing.
 async function startMdnsScanQr(
@@ -13,29 +13,36 @@ async function startMdnsScanQr(
 ): Promise<void> {
   //Timer variable to dispose everything if no device connect within 30 sec.
   var timer: NodeJS.Timeout;
+  var instance = new Bonjour();
 
   // Event if panel is closed by user.
-  panel?.onDidDispose((e)=>{
+  panel?.onDidDispose((e) => {
     resolve!();
     scanner.stop();
-    bonjour().destroy();
+    instance.destroy();
     clearTimeout(timer);
-  })
+  });
 
-  var scanner: bonjour.Browser = bonjour().find(
+  var scanner = instance.find(
     { type: "adb-tls-pairing" },
-    async function (service: any) {
+    async function (service: Service) {
       console.log(service);
-      if (!(service.addresses[0] == undefined)) {
-        var device = new MdnsDeviceData(
-          service.name,
-          service.addresses[0],
-          service.port
-        );
+      if (!(service.addresses && service.addresses?.length == 0)) {
+        var device: MdnsDeviceData;
+        for (let i = 0; i < service.addresses!.length; i++) {
+          if (require("net").isIP(service?.addresses![i]) == 4) {
+            device = new MdnsDeviceData(
+              service.name,
+              service.addresses![i],
+              service.port
+            );
+          }
+        }
 
         var isPaired;
-        await showProgress("ADB-QR:Pairing...", () =>
-          isPaired = AdbPair(device, password)
+        await showProgress(
+          "ADB-QR:Pairing...",
+          () => (isPaired = AdbPair(device, password))
         );
         console.log(isPaired);
         if (isPaired) {
@@ -46,29 +53,29 @@ async function startMdnsScanQr(
               await AdbConnect(panel, resolve);
               clearTimeout(timer);
               scanner.stop();
-              bonjour().destroy();
+              instance.destroy();
             });
           });
-        }
-        else{
+        } else {
           resolve!();
-          showError("ADB QR: Unable to pair device")
+          showError("ADB QR: Unable to pair device");
         }
       }
     }
   );
+  scanner.setMaxListeners(10);
 
-  scanner.addListener('up',()=>{
+  scanner.addListener("up", () => {
     console.log("QR Scanning Stopped...");
-  })
+  });
 
-  scanner.on('up',()=>{
+  scanner.on("up", () => {
     console.log("up");
-  })
+  });
 
   timer = setTimeout(() => {
     scanner.stop();
-    bonjour().destroy();
+    instance.destroy();
     panel.dispose();
     showError("ADB QR: TimeOut: No Device Found");
     resolve!();
@@ -79,19 +86,25 @@ async function startMdnsScanPairingCode(
   resolve?: Function
 ): Promise<{ stream: Readable; dispose: Function }> {
   var timer: NodeJS.Timeout;
+  var instance = new Bonjour();
 
   var stream = new Readable();
 
-  var scanner = bonjour().find(
+  var scanner = instance.find(
     { type: "adb-tls-pairing" },
     function (service: any) {
       console.log(service);
-      if (!(service.addresses[0] == undefined)) {
-        var device = new MdnsDeviceData(
-          service.name,
-          service.addresses[0],
-          service.port
-        );
+      if (!(service.addresses && service.addresses?.length == 0)) {
+        var device: MdnsDeviceData | null = null;
+        for (let i = 0; i < service.addresses!.length; i++) {
+          if (require("net").isIP(service?.addresses![i]) == 4) {
+            device = new MdnsDeviceData(
+              service.name,
+              service.addresses![i],
+              service.port
+            );
+          }
+        }
         stream.emit("data", device);
       }
     }
@@ -99,7 +112,7 @@ async function startMdnsScanPairingCode(
 
   timer = setTimeout(() => {
     scanner.stop();
-    bonjour().destroy();
+    instance.destroy();
     stream.destroy();
     showError("ADB QR: TimeOut: Scanning Stopped");
     resolve!();
@@ -107,7 +120,7 @@ async function startMdnsScanPairingCode(
 
   var dispose: Function = () => {
     scanner.stop();
-    bonjour().destroy();
+    instance.destroy();
     stream.destroy();
     clearTimeout(timer);
     resolve!();

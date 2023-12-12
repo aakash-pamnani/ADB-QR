@@ -1,19 +1,19 @@
-import bonjour = require("bonjour");
-import {spawnSync } from "child_process";
+import Bonjour, { Service } from "bonjour-service";
+import { spawnSync } from "child_process";
+import * as vscode from "vscode";
 
-
-import { MdnsDeviceData } from "./mdnsDeviceData";
-import { showError, showNotification, showProgress } from "./utils";
+import { MdnsDeviceData } from "../mdns/mdnsDeviceData";
+import { showError, showNotification, showProgress } from "../utils";
 
 function isAdbVersionSupported(): boolean {
   try {
-    var commandOutput = executeCommand("adb --version");
+    var commandOutput = executeCommand(Constants.ADB_VERSION_CMD);
 
     const output = commandOutput[1]?.toString();
     const exitCode = commandOutput[0];
 
     if (exitCode == 0) {
-      var versionIndex = output!.lastIndexOf("Version");
+      var versionIndex = output!.lastIndexOf(Constants.VERSION);
       var currentFullVersion = output!.substring(versionIndex + 8);
       var currentVersion = Number.parseInt(
         currentFullVersion.charAt(0) + currentFullVersion.charAt(1)
@@ -25,7 +25,7 @@ function isAdbVersionSupported(): boolean {
         return false;
       }
     } else {
-      showError("ADB Qr " + commandOutput[2]);
+      showError(vscode.l10n.t("ADB QR: {0}", commandOutput[2]));
 
       return false;
     }
@@ -37,11 +37,11 @@ function isAdbVersionSupported(): boolean {
 
 function isAdbInstalled(): boolean {
   try {
-    var commandOutput = executeCommand("adb --version");
+    var commandOutput = executeCommand(Constants.ADB_VERSION_CMD);
     if (commandOutput[0] == 0) {
       return true;
     } else {
-      showError("ADB Qr " + commandOutput[2]);
+      showError(vscode.l10n.t("ADB QR: {0}", commandOutput[2]));
       return false;
     }
   } catch (e) {
@@ -53,46 +53,47 @@ function isAdbInstalled(): boolean {
 function AdbPair(device: MdnsDeviceData, password: String): boolean {
   try {
     var commandOutput = executeCommand(
-      "adb pair " + device.ipAddress + ":" + device.port + " " + password
+      Constants.ADB_PAIR_CMD(device.ipAddress, device.port, password)
     );
     console.log("Output was:\n", commandOutput);
     if (commandOutput[0] == 0) {
-      showNotification("ADB-QR: " + commandOutput[1]);
+      showNotification(vscode.l10n.t("ADB-QR: {0}", commandOutput[1]));
       return true;
     } else {
-      showError("ADB-QR: " + commandOutput[2]);
+      showError(vscode.l10n.t("ADB-QR: {0}", commandOutput[2]));
       return false;
     }
   } catch (e) {
     console.log("Unable to Pair With Device", e);
-    showError("ADB QR: Unable to Pair With Device");
+    showError(vscode.l10n.t("ADB QR: Unable to Pair With Device"));
     return false;
   }
 }
 
 async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
   var timer: NodeJS.Timeout;
-  console.log("Started Scanning...");
-  var scanner = bonjour().find(
-    { type: "adb-tls-connect" },
-    function (service: any) {
+  console.log(vscode.l10n.t("Started Scanning..."));
+  var bonjour = new Bonjour();
+  var scanner = bonjour.find(
+    { type: Constants.MDNS_SCAN_TYPE },
+    function (service: Service) {
       scanner.stop();
-      bonjour().destroy();
+      bonjour.destroy();
       console.log(service);
 
       try {
         var commandOutput = executeCommand(
-          "adb connect " + service.addresses[0] + ":" + service.port
+          Constants.ADB_CONNECT_CMD(service.addresses![0], service.port)
         );
 
         console.log("Output was:\n", commandOutput);
         if (commandOutput[0] == 0) {
-          showNotification("ADB-QR: " + commandOutput[1]);
-          showProgress("ADB QR: Getting Device Name", () => {
-            getDeviceName(service.addresses[0], service.port);
+          showNotification(vscode.l10n.t("ADB-QR: {0}", commandOutput[1]));
+          showProgress(vscode.l10n.t("ADB QR: Getting Device Name"), () => {
+            getDeviceName(service.addresses![0], service.port);
           });
         } else {
-          showError("ADB QR " + commandOutput[2]);
+          showError(vscode.l10n.t("ADB-QR: {0}", commandOutput[2]));
         }
         clearTimeout(timer);
         if (resolve != null) {
@@ -100,7 +101,7 @@ async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
         }
       } catch (e) {
         console.log("Unable to Connect With Device", e);
-        showError("ADB QR: Unable to Connect With Device");
+        showError(vscode.l10n.t("ADB QR: Unable to Connect With Device"));
         clearTimeout(timer);
         if (resolve != null) {
           resolve();
@@ -111,7 +112,7 @@ async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
   timer = setTimeout(() => {
     scanner.stop();
     panel?.dispose();
-    showError("ADB QR: TimeOut: Unable to connect with device");
+    showError(vscode.l10n.t("ADB QR: TimeOut: Unable to connect with device"));
     console.log("ADB QR: TimeOut: Unable to connect with device");
     if (resolve != null) {
       resolve();
@@ -122,19 +123,19 @@ async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
 function getDeviceName(address: string, port: number) {
   try {
     var commandOutput = executeCommand(
-      "adb -s " + address + ":" + port + " shell getprop ro.product.model"
+      Constants.ADB_GET_DEVICE_NAME_CMD(address, port)
     );
     console.log("Output was:\n", commandOutput);
 
     if (commandOutput[0] == 0) {
       var output: string = commandOutput[1]?.toString() ?? "";
-      showNotification("ADB QR:Connected To " + output);
+      showNotification(vscode.l10n.t("ADB QR:Connected To {0}", output));
     } else {
-      showError("ADB Qr " + commandOutput[2]);
+      showError(vscode.l10n.t("ADB QR: {0}", commandOutput[2]));
     }
   } catch (e) {
     console.log("Unable to get Device Name", e);
-    showError("ADB QR: Something Went Wrong");
+    showError(vscode.l10n.t("ADB QR: Unable to get Device Name"));
   }
 }
 
@@ -148,7 +149,11 @@ function executeCommand(command: string) {
     });
   } catch (e) {
     console.log(e);
-    showError("ADB-QR: Timeout in executing ADB command Try restarting ADB..");
+    showError(
+      vscode.l10n.t(
+        "ADB QR: Timeout in executing ADB command Try restarting ADB.."
+      )
+    );
   }
 
   return [child?.status ?? 1, child?.stdout ?? "", child?.stderr ?? ""];
