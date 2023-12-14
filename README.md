@@ -1,6 +1,8 @@
 # ADB-QR README
 
 Connect Your Android device with your PC wirelessly for debugging with the help of this extension.
+<br>
+[![Buy Me A Coffee](https://bmc-cdn.nyc3.digitaloceanspaces.com/BMC-button-images/custom_images/orange_img.png "Buy Me A Coffee")](https://www.buymeacoffee.com/aakashpp)
 
 ## Requirements
 
