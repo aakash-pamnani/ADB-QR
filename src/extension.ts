@@ -16,9 +16,6 @@ export function activate(context: vscode.ExtensionContext) {
   let connectWithQrDisposible = vscode.commands.registerCommand(
     "adb-qr.connect_with_qr",
     async function () {
-      const message = vscode.l10n.t("Hello");
-      vscode.window.showInformationMessage(message);
-      console.log(context.extensionUri);
       connectWithQr();
     }
   );

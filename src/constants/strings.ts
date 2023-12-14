@@ -24,6 +24,7 @@ class Constants {
   }
 
   public static readonly MDNS_SCAN_TYPE = "adb-tls-connect";
+  public static readonly MDNS_PAIRING_TYPE = "adb-tls-pairing";
 
   public static WEBVIEW_HTML(code: String): string {
     return (
@@ -37,3 +38,5 @@ class Constants {
     );
   }
 }
+
+export { Constants };

@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 
 import { MdnsDeviceData } from "../mdns/mdnsDeviceData";
 import { showError, showNotification, showProgress } from "../utils";
+import { Constants } from "../constants/strings";
 
 function isAdbVersionSupported(): boolean {
   try {
@@ -57,10 +58,10 @@ function AdbPair(device: MdnsDeviceData, password: String): boolean {
     );
     console.log("Output was:\n", commandOutput);
     if (commandOutput[0] == 0) {
-      showNotification(vscode.l10n.t("ADB-QR: {0}", commandOutput[1]));
+      showNotification(vscode.l10n.t("ADB QR: {0}", commandOutput[1]));
       return true;
     } else {
-      showError(vscode.l10n.t("ADB-QR: {0}", commandOutput[2]));
+      showError(vscode.l10n.t("ADB QR: {0}", commandOutput[2]));
       return false;
     }
   } catch (e) {
@@ -77,23 +78,39 @@ async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
   var scanner = bonjour.find(
     { type: Constants.MDNS_SCAN_TYPE },
     function (service: Service) {
-      scanner.stop();
-      bonjour.destroy();
+      // scanner.stop();
+      // bonjour.destroy();
       console.log(service);
+      if (service.addresses == undefined || service.addresses.length == 0) {
+        return;
+      }
+      var device: MdnsDeviceData | null = null;
+
+      if (!(service.addresses && service.addresses?.length == 0)) {
+        for (let i = 0; i < service.addresses!.length; i++) {
+          if (require("net").isIP(service?.addresses![i]) == 4) {
+            device = new MdnsDeviceData(
+              service.name,
+              service.addresses![i],
+              service.port
+            );
+          }
+        }
+      }
 
       try {
         var commandOutput = executeCommand(
-          Constants.ADB_CONNECT_CMD(service.addresses![0], service.port)
+          Constants.ADB_CONNECT_CMD(device!.ipAddress, service.port)
         );
 
         console.log("Output was:\n", commandOutput);
         if (commandOutput[0] == 0) {
-          showNotification(vscode.l10n.t("ADB-QR: {0}", commandOutput[1]));
+          showNotification(vscode.l10n.t("ADB QR: {0}", commandOutput[1]));
           showProgress(vscode.l10n.t("ADB QR: Getting Device Name"), () => {
             getDeviceName(service.addresses![0], service.port);
           });
         } else {
-          showError(vscode.l10n.t("ADB-QR: {0}", commandOutput[2]));
+          showError(vscode.l10n.t("ADB QR: {0}", commandOutput[2]));
         }
         clearTimeout(timer);
         if (resolve != null) {
@@ -112,7 +129,7 @@ async function AdbConnect(panel?: any, resolve?: Function): Promise<void> {
   timer = setTimeout(() => {
     scanner.stop();
     panel?.dispose();
-    showError(vscode.l10n.t("ADB QR: TimeOut: Unable to connect with device"));
+    // showError(vscode.l10n.t("ADB QR: TimeOut: Unable to connect with device"));
     console.log("ADB QR: TimeOut: Unable to connect with device");
     if (resolve != null) {
       resolve();

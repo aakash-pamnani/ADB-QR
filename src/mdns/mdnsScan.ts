@@ -4,6 +4,7 @@ import { AdbConnect, AdbPair } from "../service/adbService";
 import { MdnsDeviceData } from "./mdnsDeviceData";
 import { showError, showProgress } from "../utils";
 import * as vscode from "vscode";
+import { Constants } from "../constants/strings";
 
 // Mdns Scanning for QR code connection pairing.
 async function startMdnsScanQr(
@@ -24,7 +25,7 @@ async function startMdnsScanQr(
   });
 
   var scanner = instance.find(
-    { type: "adb-tls-pairing" },
+    { type: Constants.MDNS_PAIRING_TYPE },
     async function (service: Service) {
       console.log(service);
       if (!(service.addresses && service.addresses?.length == 0)) {
@@ -41,43 +42,37 @@ async function startMdnsScanQr(
 
         var isPaired;
         await showProgress(
-          "ADB-QR:Pairing...",
+          vscode.l10n.t("ADB QR:Pairing..."),
           () => (isPaired = AdbPair(device, password))
         );
         console.log(isPaired);
         if (isPaired) {
           resolve!();
-          showProgress("ADB-QR:Waiting to Connect...", async () => {
-            await new Promise<void>(async (resolve) => {
-              panel.dispose();
-              await AdbConnect(panel, resolve);
-              clearTimeout(timer);
-              scanner.stop();
-              instance.destroy();
-            });
-          });
+          showProgress(
+            vscode.l10n.t("ADB QR:Waiting to Connect..."),
+            async () => {
+              await new Promise<void>(async (resolve) => {
+                panel.dispose();
+                clearTimeout(timer);
+                scanner.stop();
+                instance.destroy();
+                await AdbConnect(panel, resolve);
+              });
+            }
+          );
         } else {
           resolve!();
-          showError("ADB QR: Unable to pair device");
+          showError(vscode.l10n.t("ADB QR: Unable to Pair With Device"));
         }
       }
     }
   );
-  scanner.setMaxListeners(10);
-
-  scanner.addListener("up", () => {
-    console.log("QR Scanning Stopped...");
-  });
-
-  scanner.on("up", () => {
-    console.log("up");
-  });
 
   timer = setTimeout(() => {
     scanner.stop();
     instance.destroy();
     panel.dispose();
-    showError("ADB QR: TimeOut: No Device Found");
+    showError(vscode.l10n.t("ADB QR: TimeOut: No Device Found"));
     resolve!();
   }, 30000);
 }
@@ -91,7 +86,7 @@ async function startMdnsScanPairingCode(
   var stream = new Readable();
 
   var scanner = instance.find(
-    { type: "adb-tls-pairing" },
+    { type: Constants.MDNS_PAIRING_TYPE },
     function (service: any) {
       console.log(service);
       if (!(service.addresses && service.addresses?.length == 0)) {
@@ -114,7 +109,7 @@ async function startMdnsScanPairingCode(
     scanner.stop();
     instance.destroy();
     stream.destroy();
-    showError("ADB QR: TimeOut: Scanning Stopped");
+    showError(vscode.l10n.t("ADB QR: TimeOut: Scanning Stopped"));
     resolve!();
   }, 30000);
 

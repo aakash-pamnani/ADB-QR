@@ -4,6 +4,7 @@ import { showError, showProgress } from "../utils";
 
 import * as vscode from "vscode";
 import * as qrCode from "qrcode";
+import { Constants } from "../constants/strings";
 
 var panel: vscode.WebviewPanel;
 var password: String;

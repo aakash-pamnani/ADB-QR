@@ -43,15 +43,15 @@ async function connectWithPairingCode() {
             scanData.dispose();
             code = input;
             var isPaired;
-            await showProgress(vscode.l10n.t("ADB-QR:Pairing..."), () => {
+            await showProgress(vscode.l10n.t("ADB QR:Pairing..."), () => {
               isPaired = AdbPair(selection[0].device, code);
             });
             if (isPaired) {
-              showProgress(vscode.l10n.t("ADB-QR:Connecting..."), async () => {
+              showProgress(vscode.l10n.t("ADB QR:Connecting..."), async () => {
                 await AdbConnect();
               });
             } else {
-              showError(vscode.l10n.t("ADB QR: Unable to pair Device"));
+              showError(vscode.l10n.t("ADB QR: Unable to Pair With Device"));
             }
           });
       }
