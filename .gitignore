@@ -8,4 +8,4 @@ node_modules
 vsc-extension-quickstart.md
 **/*.map
 package-lock.json
-
+build

@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
-import { connectWithPairedDevice } from "./connectWithPairedDevice";
-import { connectWithPairingCode } from "./connectWithPairingCode";
-import { connectWithQr } from "./connectWithQr";
+import { connectWithPairedDevice } from "./service/connectWithPairedDevice";
+import { connectWithPairingCode } from "./service/connectWithPairingCode";
+import { connectWithQr } from "./service/connectWithQr";
 
-export function activate(context: any) {
+//TODO: add l10n to all files
+//TODO: extract string to constant in all files
+export function activate(context: vscode.ExtensionContext) {
   // const readmePath = context.asAbsolutePath("README.md");
   // vscode.commands.executeCommand(
   //   "markdown.showPreview",
@@ -12,15 +14,15 @@ export function activate(context: any) {
 
   //Command to connect with QR Code
   let connectWithQrDisposible = vscode.commands.registerCommand(
-    "adb-qr.connect with qr",
-    function () {
+    "adb-qr.connect_with_qr",
+    async function () {
       connectWithQr();
     }
   );
 
   //Command to connect with Pairing code
   let connectWithCodeDisposible = vscode.commands.registerCommand(
-    "adb-qr.connect with pairing code",
+    "adb-qr.connect_with_pairing_code",
     function () {
       connectWithPairingCode();
     }
@@ -28,7 +30,7 @@ export function activate(context: any) {
 
   //Command to connect Paired Devices
   let connectWithpairedDeviceDisposible = vscode.commands.registerCommand(
-    "adb-qr.connect with paired device",
+    "adb-qr.connect_with_paired_device",
     function () {
       connectWithPairedDevice();
     }
